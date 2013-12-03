@@ -18,8 +18,14 @@
 #    This is a verbose output flag.
 #
 
+COL_NORMAL=$(tput sgr0)
+COL_GREEN=$(tput setaf 2)
+COL_RED=$(tput setaf 1)
+
+MSG_TAG='run-hooks'
+
 function run_hooks_info {
-    echo "[run-hooks] ${@}"
+    echo "[${COL_GREEN}${MSG_TAG}${COL_NORMAL}] ${@}"
 }
 
 function run_hooks_verbose {
@@ -29,7 +35,7 @@ function run_hooks_verbose {
 }
 
 function run_hooks_error {
-    echo "[run-hooks:err] ${@}" 1>&2
+    echo "[$COL_RED${MSG_TAG}:err$COL_NORMAL] ${@}" 1>&2
 }
 
 
