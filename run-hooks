@@ -18,43 +18,45 @@
 #    This is a verbose output flag.
 #
 
+THIS_SCRIPT_NAME='run-hooks'
+
 COL_NORMAL=$(tput sgr0)
 COL_GREEN=$(tput setaf 2)
 COL_RED=$(tput setaf 1)
 
-MSG_TAG='run-hooks'
-
 function log_info_run_hooks {
-    echo "[${COL_GREEN}${MSG_TAG}${COL_NORMAL}] ${@}"
+    echo "[${COL_GREEN}${THIS_SCRIPT_NAME}${COL_NORMAL}] ${@}"
 }
 
 function log_error_run_hooks {
-    echo "[$COL_RED${MSG_TAG}:err$COL_NORMAL] ${@}" 1>&2
+    echo "[$COL_RED${THIS_SCRIPT_NAME}:err$COL_NORMAL] ${@}" 1>&2
 }
 
 function log_verbose_run_hooks {
-    if [ ! -z $VERBOSE_GIT_HOOKS ]; then
-        log_info_run_hooks $@
-    fi
+    [ ! -z $VERBOSE_GIT_HOOKS ] && log_info_run_hooks $@
 }
 
 GIT_HOOK_NAME=${RUN_GIT_HOOK_NAME:-$(basename $0)}
 log_verbose_run_hooks "GIT_HOOK_NAME: ${GIT_HOOK_NAME}"
+if [ $GIT_HOOK_NAME = $THIS_SCRIPT_NAME ]; then
+    log_error_run_hooks 'create symlink in $GIT_DIR/hooks OR set $RUN_GIT_HOOK_NAME'
+    exit 1
+fi
 
 HOOKS_ROOT=$(dirname $(readlink -f $0))
 RUN_HOOK_DIR="${HOOKS_ROOT}/${GIT_HOOK_NAME}"
 log_verbose_run_hooks "RUN_HOOK_DIR: ${RUN_HOOK_DIR}"
-
 if [ ! -d $RUN_HOOK_DIR ]; then
-    log_error_run_hooks 'no directory'
+    log_error_run_hooks "'${RUN_HOOK_DIR}' is not a directory"
     exit 1
 fi
 
+# run hook scripts
 set -e
 for file in $(ls $RUN_HOOK_DIR | sort); do
     hook="${RUN_HOOK_DIR}/${file}"
     if [ -x $hook ]; then
-        log_verbose_run_hooks "run: ${file}"
+        log_verbose_run_hooks "run: ${file} ${@}"
         $hook "$@"
     fi
 done
