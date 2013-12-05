@@ -12,7 +12,7 @@
 #    This environment variable overrides the name of directory which contains hooks to execute.
 #    If you also want to use the usual way (put hooks in $GIT_DIR/hooks), set this variable like below.
 #        e.g) $GIT_DIR/hooks/pre-commit
-#            RUN_GIT_HOOK_NAME=pre-commit path/to/this/script/directory/run-hooks
+#            RUN_GIT_HOOK_NAME=pre-commit path/to/this/script/directory/run-hooks $@
 #
 # - VERBOSE_GIT_HOOKS:
 #    This is a verbose output flag.
