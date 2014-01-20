@@ -14,26 +14,27 @@ ABBREV = 7
 remote_ref =~ %r|refs/heads/(.+)|
 remote_branch_name = $1 ? [remote_name, $1].join('/') : nil
 
-### この branch がどこから切られたか heuristics に見つける
+### この branch がどこから切られたか heuristics に探す
 current_branch = `git rev-parse --abbrev-ref HEAD`
-# このブランチにしか含まれない commit の中で最初のものを見つける
-current_branch_first_commit = `git rev-list --all --not $(git rev-list --all ^#{current_branch}) | tail -n 1`.chomp
+# reflog から探す、レビュー依頼するのは自分で切った branch のはずなので見つかると思うな〜
+created_commit = `git reflog #{current_branch} | grep Created | tail -n 1 | cut -d' ' -f1`.chomp
 
-unless current_branch_first_commit.empty?
-  # 大抵 local branch から切るはずだし -r は遅くなるからつけないでおく
+unless created_commit.empty?
+  # 大抵 local から切るはずだし -r は遅くなるのでつけないでおくね
   candidate_branches =
-    `git branch --contains $(git rev-parse #{current_branch_first_commit}^) | sed 's/^[* ] //'`.split("\n")
+    `git branch --contains #{created_commit} | sed 's/^[* ] //' | grep -vE '^#{current_branch}$'`.split("\n")
 
-  # remote に名前があって一番短い名前の branch 名を探す
-  remote_name = nil
+  # remote に名前があって一番短い名前の branch 名を探すよ
+  remote_name = ''
   candidate_branches.sort_by{ |name| name.length }.each{ |br|
     remote_name = `git rev-parse --abbrev-ref #{br}@{upstream} 2>/dev/null`.chomp
     break if $?.success?
   }
-  puts "#{PREFIX} git diff #{remote_name}...#{remote_branch_name}" if remote_name
+
+  puts "#{PREFIX} git diff #{remote_name}...origin/#{current_branch}" unless remote_name.empty?
 end
 
-# 既に remote に tracking している branch があればそこからの差分を出す
+# push 先で新規の branch でなければ前回の upstream との差分も表示する
 unless remote_sha1 =~ /^0+$/
   puts "#{PREFIX} git diff #{remote_sha1[0..ABBREV]} #{local_sha1[0..ABBREV]}"
 end
