@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 remote_name, remote_url = ARGV
-local_ref, local_sha1, remote_ref, remote_sha1 = $stdin.gets.chomp.split(' ')
+
+ref_infos = $stdin.gets
+exit(true) if ref_infos.nil?
+
+local_ref, local_sha1, remote_ref, remote_sha1 = ref_infos.chomp.split(' ')
 
 PREFIX = '[diff-command]'
 ABBREV = 7
