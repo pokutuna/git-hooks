@@ -15,7 +15,8 @@ remote_ref =~ %r|refs/heads/(.+)|
 remote_branch_name = $1 ? [remote_name, $1].join('/') : nil
 
 ### この branch がどこから切られたか heuristics に探す
-current_branch = `git rev-parse --abbrev-ref HEAD`
+current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
+
 # reflog から探す、レビュー依頼するのは自分で切った branch のはずなので見つかると思うな〜
 created_commit = `git reflog #{current_branch} | grep Created | tail -n 1 | cut -d' ' -f1`.chomp
 
@@ -31,7 +32,7 @@ unless created_commit.empty?
     break if $?.success?
   }
 
-  puts "#{PREFIX} git diff #{remote_name}...origin/#{current_branch}" unless remote_name.empty?
+  puts "#{PREFIX} git diff #{remote_name}...#{remote_branch_name}" unless remote_name.empty?
 end
 
 # push 先で新規の branch でなければ前回の upstream との差分も表示する
