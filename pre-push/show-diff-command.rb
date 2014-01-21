@@ -13,11 +13,9 @@ ABBREV = 7
 
 remote_ref =~ %r|refs/heads/(.+)|
 remote_branch_name = $1 ? [remote_name, $1].join('/') : nil
-
-### この branch がどこから切られたか heuristics に探す
 current_branch = `git rev-parse --abbrev-ref HEAD`.chomp
 
-# reflog から探す、レビュー依頼するのは自分で切った branch のはずなので見つかると思うな〜
+# reflog から branch 作成時の HEAD を探す、レビュー依頼するのは自分で切った branch のはずなので見つかると思うな〜
 created_commit = `git reflog #{current_branch} | grep Created | tail -n 1 | cut -d' ' -f1`.chomp
 
 unless created_commit.empty?
@@ -25,7 +23,7 @@ unless created_commit.empty?
   candidate_branches =
     `git branch --contains #{created_commit} | sed 's/^[* ] //' | grep -vE '^#{current_branch}$'`.split("\n")
 
-  # remote に名前があって一番短い名前の branch 名を探すよ
+  # remote に名前があって一番短い(heuristic!!)名前の branch 名を探すよ
   remote_name = ''
   candidate_branches.sort_by{ |name| name.length }.each{ |br|
     remote_name = `git rev-parse --abbrev-ref #{br}@{upstream} 2>/dev/null`.chomp
@@ -35,7 +33,7 @@ unless created_commit.empty?
   puts "#{PREFIX} git diff #{remote_name}...#{remote_branch_name}" unless remote_name.empty?
 end
 
-# push 先で新規の branch でなければ前回の upstream との差分も表示する
+# push 先で新規の branch でなければ upstream との差分も表示するぜ
 unless remote_sha1 =~ /^0+$/
   puts "#{PREFIX} git diff #{remote_sha1[0..ABBREV]} #{local_sha1[0..ABBREV]}"
 end
