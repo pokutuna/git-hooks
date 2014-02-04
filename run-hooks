@@ -45,7 +45,17 @@ if [ $GIT_HOOK_NAME = $THIS_SCRIPT_NAME ]; then
     exit 1
 fi
 
-HOOKS_ROOT=$(dirname $(readlink -f $0))
+function __readlink_f {
+  TARGET_FILE=$1
+  while [ "$TARGET_FILE" != "" ]; do
+      cd `dirname $TARGET_FILE`
+      FILENAME=`basename $TARGET_FILE`
+      TARGET_FILE=`readlink $FILENAME`
+  done
+  echo `pwd -P`/$FILENAME
+}
+
+HOOKS_ROOT=$(dirname $(__readlink_f $0))
 RUN_HOOK_DIR="${HOOKS_ROOT}/${GIT_HOOK_NAME}"
 log_verbose_run_hooks "RUN_HOOK_DIR: ${RUN_HOOK_DIR}"
 if [ ! -d $RUN_HOOK_DIR ]; then

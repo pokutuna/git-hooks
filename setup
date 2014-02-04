@@ -3,7 +3,17 @@
 # 現在の git リポジトリの .git/hooks/ 以下へ
 # フックを走らせるスクリプトへのsymlinkを貼っていく。既にフックがあるなら何もしない。
 
-RUN_HOOK_DIR=$(dirname $(readlink -f $0))
+function __readlink_f {
+  TARGET_FILE=$1
+  while [ "$TARGET_FILE" != "" ]; do
+      cd `dirname $TARGET_FILE`
+      FILENAME=`basename $TARGET_FILE`
+      TARGET_FILE=`readlink $FILENAME`
+  done
+  echo `pwd -P`/$FILENAME
+}
+
+RUN_HOOK_DIR=$(dirname $(__readlink_f $0))
 COMMON_HOOK_PATH="${RUN_HOOK_DIR}/run-hooks"
 HOOK_DIRS=$(ls -F ${RUN_HOOK_DIR} | grep '/' | cut -d'/' -f1)
 
@@ -12,7 +22,7 @@ GIT_HOOK_DIR=$(git rev-parse --git-dir)'/hooks'
 for hook_name in ${HOOK_DIRS[@]}; do
     hook_path="${GIT_HOOK_DIR}/${hook_name}"
     if [ -e $hook_path ]; then
-        if [ $(readlink -f $hook_path) = $COMMON_HOOK_PATH ]; then
+        if [ $(__readlink_f $hook_path) = $COMMON_HOOK_PATH ]; then
             echo "SKIP ${hook_path} is already symlinked"
         else
             echo "SKIP ${hook_path} exists"
