@@ -5,7 +5,7 @@ my $ticket = do {
     $1;
 };
 
-if ($ARGV[1] eq '' && $ticket) {
+if ($ticket && ( $ARGV[1] eq '' || $ARGV[1] eq 'message' )) {
     open(my $fh, '+<', $ARGV[0]) or die $!;
     my @message = <$fh>;
     unshift @message, "(refs #$ticket) ";
