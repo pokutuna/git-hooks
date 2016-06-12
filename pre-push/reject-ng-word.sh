@@ -39,6 +39,7 @@ while read local_ref local_sha1 remote_ref remote_sha1; do
             * )
                 exit 1
                 ;;
+        esac
     fi
 done
 
