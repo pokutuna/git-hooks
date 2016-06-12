@@ -19,8 +19,8 @@ while read local_ref local_sha1 remote_ref remote_sha1; do
     fi
 
     commit=$(git rev-list -n 1 --grep='^fixup!' $range)
-    if [ -n $commit ]; then
-        echo "[REJECT] fixup commit found ${commit}\n"
+    if [ -n "$commit" ]; then
+        echo "[REJECT] fixup commit found ${commit}"
         exit 1
     fi
 done
